@@ -90,6 +90,19 @@ const Sales = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const resetForm = () => {
+        setEditingSale(null);
+        setFormData({
+            stock_id: '',
+            customer_id: '',
+            quantity: '',
+            price_per_carat: '',
+            paid_amount: '',
+            payment_method: 'Cash',
+            sale_date: new Date().toISOString().split('T')[0]
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -119,16 +132,7 @@ const Sales = () => {
                 toast.success("Sale recorded successfully!");
             }
             setIsAddOpen(false);
-            setEditingSale(null);
-            setFormData({
-                stock_id: '',
-                customer_id: '',
-                quantity: '',
-                price_per_carat: '',
-                paid_amount: '',
-                payment_method: 'Cash',
-                sale_date: new Date().toISOString().split('T')[0]
-            });
+            resetForm();
             fetchData();
         } catch (err) {
             console.error(err);
@@ -250,7 +254,13 @@ const Sales = () => {
                         </CardHeader>
                     </Card>
 
-                    <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                    <Dialog
+                        open={isAddOpen}
+                        onOpenChange={(open) => {
+                            setIsAddOpen(open);
+                            if (!open) resetForm();
+                        }}
+                    >
                         <DialogTrigger asChild>
                              <Button className="bg-blue-600 hover:bg-blue-700 h-12 px-6 shadow-lg shadow-blue-100 transition-all active:scale-95">
                                 <Plus className="w-5 h-5 mr-2" />

@@ -110,6 +110,27 @@ const Purchases = () => {
     setImage(e.target.files[0]);
   };
 
+  const resetForm = () => {
+    setEditingPurchase(null);
+    setFormData({
+      supplier_id: "",
+      name: "",
+      type: "",
+      color: "",
+      clarity: "",
+      carat: "",
+      cut: "",
+      quantity: "",
+      price_per_carat: "",
+      paid_amount: "",
+      payment_method: "Cash",
+      description: "",
+      condition: "Natural",
+      purchase_date: new Date().toISOString().split('T')[0],
+    });
+    setImage(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -141,24 +162,7 @@ const Purchases = () => {
         toast.success("Purchase & Stock recorded successfully!");
       }
       setIsAddOpen(false);
-      setEditingPurchase(null);
-      setFormData({
-        supplier_id: "",
-        name: "",
-        type: "",
-        color: "",
-        clarity: "",
-        carat: "",
-        cut: "",
-        quantity: "",
-        price_per_carat: "",
-        paid_amount: "",
-        payment_method: "Cash",
-        description: "",
-        condition: "Natural",
-        purchase_date: new Date().toISOString().split('T')[0],
-      });
-      setImage(null);
+      resetForm();
       fetchData();
     } catch (err) {
       console.error(err);
@@ -305,7 +309,13 @@ const Purchases = () => {
             </CardHeader>
           </Card>
 
-          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+          <Dialog
+            open={isAddOpen}
+            onOpenChange={(open) => {
+              setIsAddOpen(open);
+              if (!open) resetForm();
+            }}
+          >
             <DialogTrigger asChild>
               <Button className="bg-rose-600 hover:bg-rose-700 h-12 px-6 shadow-lg shadow-rose-100 transition-all active:scale-95">
                 <Plus className="w-5 h-5 mr-2" />
