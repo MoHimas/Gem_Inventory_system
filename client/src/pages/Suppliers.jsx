@@ -344,7 +344,7 @@ const Suppliers = () => {
                   Pending Payables
                 </p>
                 <p className="text-2xl font-bold text-rose-900">
-                  ${stats.activePayables.toLocaleString()}
+                  LKR {stats.activePayables.toLocaleString()}
                 </p>
               </div>
             </div>

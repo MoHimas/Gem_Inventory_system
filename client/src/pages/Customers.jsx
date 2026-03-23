@@ -319,7 +319,7 @@ const Customers = () => {
                   Receivables
                 </p>
                 <p className="text-2xl font-bold text-rose-900">
-                  ${stats.activeReceivables.toLocaleString()}
+                  LKR {stats.activeReceivables.toLocaleString()}
                 </p>
               </div>
             </div>
