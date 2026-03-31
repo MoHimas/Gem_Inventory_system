@@ -34,7 +34,6 @@ app.use('/api/ai-insights', require('./routes/aiRoutes'));
 app.use('/api/suppliers', require('./routes/supplierRoutes'));
 app.use('/api/purchases', require('./routes/purchaseRoutes'));
 app.use('/api/invoices', require('./routes/invoiceRoutes'));
-app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 

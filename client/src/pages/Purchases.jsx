@@ -13,16 +13,10 @@ import {
   Briefcase,
   Gem,
   History,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -75,7 +69,7 @@ const Purchases = () => {
     payment_method: "Cash",
     description: "",
     condition: "Natural",
-    purchase_date: new Date().toISOString().split('T')[0],
+    purchase_date: new Date().toISOString().split("T")[0],
   });
   const [image, setImage] = useState(null); // Image file state
 
@@ -126,7 +120,7 @@ const Purchases = () => {
       payment_method: "Cash",
       description: "",
       condition: "Natural",
-      purchase_date: new Date().toISOString().split('T')[0],
+      purchase_date: new Date().toISOString().split("T")[0],
     });
     setImage(null);
   };
@@ -143,7 +137,10 @@ const Purchases = () => {
       data.append("image", image);
     }
 
-    if (formData.purchase_date && new Date(formData.purchase_date) > new Date()) {
+    if (
+      formData.purchase_date &&
+      new Date(formData.purchase_date) > new Date()
+    ) {
       toast.error("Purchase date cannot be in the future");
       setIsSubmitting(false);
       return;
@@ -203,10 +200,10 @@ const Purchases = () => {
       payment_method: purchase.payment_method,
       description: purchase.description || "",
       condition: purchase.condition || "Natural",
-      purchase_date: purchase.purchase_date ? new Date(purchase.purchase_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      purchase_date: purchase.purchase_date
+        ? new Date(purchase.purchase_date).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
     });
-    // Note: For now, assuming purchases list has basic info.
-    // If some data is missing from the list JOIN, we might need a better JOIN in getAllPurchases
     setIsAddOpen(true);
   };
 
@@ -326,9 +323,7 @@ const Purchases = () => {
               <DialogHeader>
                 <DialogTitle className="text-2xl flex items-center gap-2">
                   <Truck className="w-6 h-6 text-rose-600" />
-                  {editingPurchase
-                    ? "Modify Purchase"
-                    : "New Stock Purchase"}
+                  {editingPurchase ? "Modify Purchase" : "New Stock Purchase"}
                 </DialogTitle>
                 <DialogDescription>
                   {editingPurchase
@@ -372,17 +367,17 @@ const Purchases = () => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                       <Label htmlFor="purchase_date">Purchase Date</Label>
-                       <Input
-                         id="purchase_date"
-                         name="purchase_date"
-                         type="date"
-                         value={formData.purchase_date}
-                         onChange={handleChange}
-                         className="h-11"
-                         max={new Date().toISOString().split('T')[0]}
-                         required
-                       />
+                      <Label htmlFor="purchase_date">Purchase Date</Label>
+                      <Input
+                        id="purchase_date"
+                        name="purchase_date"
+                        type="date"
+                        value={formData.purchase_date}
+                        onChange={handleChange}
+                        className="h-11"
+                        max={new Date().toISOString().split("T")[0]}
+                        required
+                      />
                     </div>
                   </div>
 
@@ -458,17 +453,17 @@ const Purchases = () => {
                       </select>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="condition">Condition</Label>
-                        <select
-                          id="condition"
-                          name="condition"
-                          className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-rose-500 transition-all"
-                          value={formData.condition}
-                          onChange={handleChange}
-                        >
-                          <option value="Natural">Natural</option>
-                          <option value="Heated">Heated</option>
-                        </select>
+                      <Label htmlFor="condition">Condition</Label>
+                      <select
+                        id="condition"
+                        name="condition"
+                        className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-rose-500 transition-all"
+                        value={formData.condition}
+                        onChange={handleChange}
+                      >
+                        <option value="Natural">Natural</option>
+                        <option value="Heated">Heated</option>
+                      </select>
                     </div>
                   </div>
 

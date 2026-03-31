@@ -292,8 +292,8 @@ const AIInsights = () => {
                       Generating Focused Insight...
                     </h3>
                     <p className="text-slate-500 text-sm font-medium italic">
-                      Gemini Advanced is applying strategic logic to your
-                      specific record data.
+                      AI is applying strategic logic to your specific record
+                      data.
                     </p>
                   </div>
                 </motion.div>

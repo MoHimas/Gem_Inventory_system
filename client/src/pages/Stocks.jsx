@@ -1,25 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { formatCurrency } from "@/lib/formatCurrency";
-import {
-  Plus,
-  Search,
-  ArrowUpDown,
-  Gem,
-  Package,
-  Box,
-  DollarSign,
-  MoreVertical,
-  Layers,
-} from "lucide-react";
+import { Search, ArrowUpDown, Gem, Box, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -28,16 +12,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
 
 const Stocks = () => {
   const [stocks, setStocks] = useState([]);
@@ -63,7 +41,6 @@ const Stocks = () => {
   useEffect(() => {
     fetchStocks();
   }, []);
-
 
   const handleSort = (key) => {
     let direction = "asc";
@@ -91,7 +68,7 @@ const Stocks = () => {
       // 1. Primary Sort: Availability (Zeros at the end)
       const qtyA = parseInt(a.quantity || 0);
       const qtyB = parseInt(b.quantity || 0);
-      
+
       if (qtyA > 0 && qtyB === 0) return -1;
       if (qtyA === 0 && qtyB > 0) return 1;
 
@@ -145,9 +122,6 @@ const Stocks = () => {
               <Layers className="w-16 h-16" />
             </div>
           </Card>
-          <Button className="opacity-0 cursor-default h-12 px-6">
-            {/* Placeholder to keep layout alignment if needed, or just remove */}
-          </Button>
         </div>
       </div>
 
@@ -250,15 +224,19 @@ const Stocks = () => {
                       key={stock.id}
                       className={cn(
                         "transition-colors group",
-                        parseInt(stock.quantity) === 0 
-                          ? "bg-gray-50/50 hover:bg-gray-100/50 grayscale-[0.5] opacity-80" 
-                          : "hover:bg-indigo-50/30"
+                        parseInt(stock.quantity) === 0
+                          ? "bg-gray-50/50 hover:bg-gray-100/50 grayscale-[0.5] opacity-80"
+                          : "hover:bg-indigo-50/30",
                       )}
                     >
-                      <TableCell className={cn(
-                        "font-mono text-[10px] sm:text-xs font-medium pl-4",
-                        parseInt(stock.quantity) === 0 ? "text-gray-400/50" : "text-gray-400"
-                      )}>
+                      <TableCell
+                        className={cn(
+                          "font-mono text-[10px] sm:text-xs font-medium pl-4",
+                          parseInt(stock.quantity) === 0
+                            ? "text-gray-400/50"
+                            : "text-gray-400",
+                        )}
+                      >
                         {stock.sku || "-"}
                       </TableCell>
                       <TableCell className="py-2">
@@ -298,10 +276,14 @@ const Stocks = () => {
                         {stock.clarity || "-"}
                       </TableCell>
                       <TableCell>
-                        <span className={cn(
-                          "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
-                          stock.condition === 'Natural' ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"
-                        )}>
+                        <span
+                          className={cn(
+                            "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
+                            stock.condition === "Natural"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                              : "bg-amber-50 text-amber-700 border border-amber-100",
+                          )}
+                        >
                           {stock.condition || "Natural"}
                         </span>
                       </TableCell>
@@ -319,7 +301,9 @@ const Stocks = () => {
                                 : "bg-emerald-50 text-emerald-700",
                           )}
                         >
-                          {parseInt(stock.quantity) === 0 ? "OUT" : stock.quantity}
+                          {parseInt(stock.quantity) === 0
+                            ? "OUT"
+                            : stock.quantity}
                         </span>
                       </TableCell>
                       <TableCell className="text-gray-600 text-xs font-medium">

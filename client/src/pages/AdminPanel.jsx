@@ -44,10 +44,10 @@ const AdminPanel = () => {
         allow_registration: true
     });
     const [systemStats, setSystemStats] = useState({
-        totalUsers: 0,
-        activeNow: 0,
-        systemStatus: 'Operational',
-        lastBackup: 'Never'
+        totalTraders: 0,
+        activeTraders: 0,
+        totalInventoryValue: 0,
+        systemStatus: 'Operational'
     });
 
     useEffect(() => {

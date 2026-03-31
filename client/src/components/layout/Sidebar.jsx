@@ -86,9 +86,6 @@ const Sidebar = ({ onClose }) => {
     item.roles.includes(user?.role),
   );
 
-  // Filter for admin only if needed
-  // if (user?.role !== 'admin') ...
-
   return (
     <div className="flex flex-col h-full bg-slate-900 text-white w-64">
       <div className="p-6 flex items-center space-x-2">
