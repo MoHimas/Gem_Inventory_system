@@ -7,24 +7,24 @@ const register = async (req, res) => {
     try {
         const { username, password, full_name, role } = req.body;
 
-        // 0. Check system settings for registration
+        // Check system settings for registration
         const settings = await pool.query("SELECT allow_registration FROM system_settings WHERE id = 1");
         if (settings.rows.length > 0 && settings.rows[0].allow_registration === false && role !== 'admin') {
             return res.status(403).json("Public registration is currently disabled by Admin.");
         }
 
-        // 1. Check if user exists
+        //Check if user exists
         const user = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
         if (user.rows.length > 0) {
             return res.status(409).json("User already exists");
         }
 
-        // 2. Bcrypt password
+        //Bcrypt password
         const saltRound = 10;
         const salt = await bcrypt.genSalt(saltRound);
         const bcryptPassword = await bcrypt.hash(password, salt);
 
-        // 3. Enter user inside database
+        // Enter user inside database
         // Default role is trader if not specified.
         const userRole = role === 'admin' ? 'admin' : 'trader';
         
@@ -33,10 +33,10 @@ const register = async (req, res) => {
             [username, bcryptPassword, full_name, userRole]
         );
 
-        // 4. Generate JWT
+        // Generate JWT
         const token = jwtGenerator(newUser.rows[0].id, newUser.rows[0].role);
 
-        // 5. Set Cookie
+        // Set Cookie
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -57,11 +57,11 @@ const login = async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // 0. Check Maintenance Mode
+        // Check Maintenance Mode
         const settings = await pool.query("SELECT maintenance_mode FROM system_settings WHERE id = 1");
         const isMaintenance = settings.rows.length > 0 && settings.rows[0].maintenance_mode;
 
-        // 1. Check if user exists
+        // Check if user exists
         const user = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
 
         if (user.rows.length === 0) {
@@ -69,7 +69,7 @@ const login = async (req, res) => {
             return res.status(401).json("Password or Username is incorrect");
         }
 
-        // 2. Check if incoming password is same as database password
+        // Check if incoming password is same as database password
         const validPassword = await bcrypt.compare(password, user.rows[0].password_hash);
 
         if (!validPassword) {
@@ -77,20 +77,20 @@ const login = async (req, res) => {
             return res.status(401).json("Password or Username is incorrect");
         }
 
-        // 2.5 Check if user is active
+        // Check if user is active
         if (user.rows[0].is_active === false) {
             console.log(`Login failed: Account '${username}' is disabled.`);
             return res.status(403).json("Your account is disabled, please contact admin");
         }
 
-        // 2.6 Check Maintenance Mode
+        // Check Maintenance Mode
         if (isMaintenance && user.rows[0].role !== 'admin') {
             return res.status(403).json("System is under maintenance. Please try again later.");
         }
 
         console.log(`Login successful for user '${username}' (${user.rows[0].role}).`);
 
-        // 3. Give them the jwt token
+        // Give them the jwt token
         const token = jwtGenerator(user.rows[0].id, user.rows[0].role);
 
         res.cookie('token', token, {

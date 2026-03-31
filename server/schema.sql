@@ -80,7 +80,7 @@ CREATE TABLE purchases (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     supplier_id UUID REFERENCES suppliers(id),
-    gemstone_id UUID REFERENCES gemstones(id), -- If buying existing stock type, or null if new
+    gemstone_id UUID REFERENCES gemstones(id), 
     description TEXT,
     quantity INTEGER NOT NULL,
     total_price DECIMAL(10, 2) NOT NULL,
