@@ -379,7 +379,7 @@ const Sales = () => {
                                             </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="paid_amount">Down Payment (LKR)</Label>
+                                            <Label htmlFor="paid_amount">Amount (LKR)</Label>
                                              <Input 
                                                 id="paid_amount" 
                                                 name="paid_amount" 

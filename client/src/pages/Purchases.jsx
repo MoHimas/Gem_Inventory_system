@@ -556,7 +556,7 @@ const Purchases = () => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="paid_amount">
-                          Advance Payment (LKR)
+                          Amount (LKR)
                         </Label>
                         <Input
                           id="paid_amount"
