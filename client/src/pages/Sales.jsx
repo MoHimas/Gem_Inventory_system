@@ -14,7 +14,16 @@ import {
     Gem,
     FileText, 
     Package,
-    Loader2
+    Loader2,
+    Check,
+    ChevronDown,
+    UserPlus,
+    X,
+    Building2,
+    Phone,
+    Mail,
+    MapPin,
+    User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -62,6 +71,17 @@ const Sales = () => {
         payment_method: 'Cash',
         sale_date: new Date().toISOString().split('T')[0]
     });
+    
+    // Custom Customer Selector State
+    const [customerSearch, setCustomerSearch] = useState("");
+    const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
+    const [isAddingCustomer, setIsAddingCustomer] = useState(false);
+    const [newCustomerData, setNewCustomerData] = useState({
+        name: "",
+        phone: "",
+        email: "",
+        address: "",
+    });
 
     useEffect(() => {
         fetchData();
@@ -101,10 +121,73 @@ const Sales = () => {
             payment_method: 'Cash',
             sale_date: new Date().toISOString().split('T')[0]
         });
+        setCustomerSearch("");
+        setIsAddingCustomer(false);
+        setNewCustomerData({
+            name: "",
+            phone: "",
+            email: "",
+            address: "",
+        });
     };
+
+    const handleNewCustomerChange = (e) => {
+        setNewCustomerData({ ...newCustomerData, [e.target.name]: e.target.value });
+    };
+
+    const handleCreateCustomer = async (e) => {
+        e.preventDefault();
+        if (!newCustomerData.name || !newCustomerData.phone) {
+            toast.error("Name and Phone are required");
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const res = await axios.post("/api/customers", newCustomerData);
+            const createdCustomer = res.data;
+            
+            // Refresh customers list
+            const customersRes = await axios.get("/api/customers");
+            setCustomers(customersRes.data);
+            
+            // Auto-select the new customer
+            setFormData({ ...formData, customer_id: createdCustomer.id });
+            setCustomerSearch("");
+            setIsAddingCustomer(false);
+            setIsCustomerDropdownOpen(false);
+            toast.success("Customer created and selected!");
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.error || "Failed to create customer");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const filteredCustomers = useMemo(() => {
+        if (!customerSearch) return customers;
+        const query = customerSearch.toLowerCase();
+        return customers.filter(
+            (c) =>
+                c.name.toLowerCase().includes(query) ||
+                (c.phone && c.phone.includes(query))
+        );
+    }, [customers, customerSearch]);
+
+    const selectedCustomerLabel = useMemo(() => {
+        const c = customers.find((cust) => cust.id.toString() === formData.customer_id.toString());
+        return c ? c.name : "Select a Customer";
+    }, [customers, formData.customer_id]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.customer_id) {
+            toast.error("Please select a customer first");
+            return;
+        }
+
         setIsSubmitting(true);
         // Client-side validation: Sale date vs Purchase date
         const selectedStock = stocks.find(s => s.id == formData.stock_id);
@@ -299,19 +382,181 @@ const Sales = () => {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="customer_id">Target Customer</Label>
-                                        <select 
-                                            id="customer_id" 
-                                            name="customer_id"
-                                            className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                            value={formData.customer_id}
-                                            onChange={handleChange}
-                                            required
-                                        >
-                                            <option value="">Select a Customer</option>
-                                            {customers.map(c => (
-                                                <option key={c.id} value={c.id}>{c.name}</option>
-                                            ))}
-                                        </select>
+                                        <div className="relative">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (!editingSale) {
+                                                        setIsCustomerDropdownOpen(!isCustomerDropdownOpen);
+                                                        setIsAddingCustomer(false);
+                                                    }
+                                                }}
+                                                className={cn(
+                                                    "flex h-11 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all",
+                                                    editingSale && "opacity-60 cursor-not-allowed"
+                                                )}
+                                                disabled={editingSale}
+                                            >
+                                                <span className="truncate">
+                                                    {selectedCustomerLabel}
+                                                </span>
+                                                <ChevronDown
+                                                    className={cn(
+                                                        "h-4 w-4 shrink-0 opacity-50 transition-transform duration-200",
+                                                        isCustomerDropdownOpen && "rotate-180"
+                                                    )}
+                                                />
+                                            </button>
+
+                                            {isCustomerDropdownOpen && (
+                                                <>
+                                                    <div 
+                                                        className="fixed inset-0 z-40" 
+                                                        onClick={() => setIsCustomerDropdownOpen(false)}
+                                                    />
+                                                    <div className="absolute top-full left-0 z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-xl animate-in fade-in zoom-in-95 duration-200 origin-top">
+                                                        <div className="p-2 border-b">
+                                                            <div className="relative">
+                                                                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                                <Input
+                                                                    placeholder="Search customer or phone..."
+                                                                    className="pl-8 h-9 text-xs focus-visible:ring-blue-500"
+                                                                    value={customerSearch}
+                                                                    onChange={(e) => setCustomerSearch(e.target.value)}
+                                                                    autoFocus
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="max-h-60 overflow-y-auto p-1">
+                                                            {filteredCustomers.length === 0 ? (
+                                                                <div className="py-6 text-center text-xs text-muted-foreground">
+                                                                    No customers found.
+                                                                </div>
+                                                            ) : (
+                                                                filteredCustomers.map((c) => (
+                                                                    <button
+                                                                        key={c.id}
+                                                                        type="button"
+                                                                        className={cn(
+                                                                            "flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm hover:bg-blue-50 hover:text-blue-900 transition-colors",
+                                                                            formData.customer_id.toString() === c.id.toString() && "bg-blue-50 text-blue-900"
+                                                                        )}
+                                                                        onClick={() => {
+                                                                            setFormData({ ...formData, customer_id: c.id.toString() });
+                                                                            setIsCustomerDropdownOpen(false);
+                                                                            setCustomerSearch("");
+                                                                        }}
+                                                                    >
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
+                                                                                {c.name.charAt(0).toUpperCase()}
+                                                                            </div>
+                                                                            <div className="flex flex-col items-start">
+                                                                                <span className="font-medium">{c.name}</span>
+                                                                                <span className="text-[10px] text-muted-foreground">{c.phone}</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        {formData.customer_id.toString() === c.id.toString() && (
+                                                                            <Check className="h-4 w-4 text-blue-600" />
+                                                                        )}
+                                                                    </button>
+                                                                ))
+                                                            )}
+                                                        </div>
+                                                        <div className="p-1 border-t bg-gray-50/50">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setIsAddingCustomer(true);
+                                                                    setIsCustomerDropdownOpen(false);
+                                                                }}
+                                                                className="flex w-full items-center gap-2 rounded-sm px-2 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-100 transition-colors"
+                                                            >
+                                                                <Plus className="h-3.5 w-3.5" />
+                                                                Create New Customer
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        {/* Inline New Customer Form */}
+                                        {isAddingCustomer && (
+                                            <div className="mt-4 p-4 rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/30 animate-in slide-in-from-top-2 duration-300">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <h4 className="text-xs font-bold text-blue-800 uppercase flex items-center gap-2">
+                                                        <UserPlus className="w-3.5 h-3.5" />
+                                                        Quick Customer Add
+                                                    </h4>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsAddingCustomer(false)}
+                                                        className="p-1 hover:bg-blue-100 rounded-full text-blue-400 transition-colors"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="space-y-1.5">
+                                                            <Label className="text-[10px] uppercase text-blue-900/60 font-bold tracking-wider">Customer Name *</Label>
+                                                            <Input 
+                                                                name="name"
+                                                                placeholder="John Doe" 
+                                                                className="h-9 text-xs bg-white border-blue-100 focus:ring-blue-500"
+                                                                value={newCustomerData.name}
+                                                                onChange={handleNewCustomerChange}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <Label className="text-[10px] uppercase text-blue-900/60 font-bold tracking-wider">Phone *</Label>
+                                                            <Input 
+                                                                name="phone"
+                                                                placeholder="+94..." 
+                                                                className="h-9 text-xs bg-white border-blue-100 focus:ring-blue-500"
+                                                                value={newCustomerData.phone}
+                                                                onChange={handleNewCustomerChange}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-[10px] uppercase text-blue-900/60 font-bold tracking-wider">Email</Label>
+                                                        <Input 
+                                                            name="email"
+                                                            type="email"
+                                                            placeholder="customer@mail.com" 
+                                                            className="h-9 text-xs bg-white border-blue-100 focus:ring-blue-500"
+                                                            value={newCustomerData.email}
+                                                            onChange={handleNewCustomerChange}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-[10px] uppercase text-blue-900/60 font-bold tracking-wider">Address</Label>
+                                                        <Input 
+                                                            name="address"
+                                                            placeholder="Shipping or billing address" 
+                                                            className="h-9 text-xs bg-white border-blue-100 focus:ring-blue-500"
+                                                            value={newCustomerData.address}
+                                                            onChange={handleNewCustomerChange}
+                                                        />
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        onClick={handleCreateCustomer}
+                                                        disabled={isSubmitting || !newCustomerData.name || !newCustomerData.phone}
+                                                        className="w-full h-9 bg-blue-600 hover:bg-blue-700 text-xs font-bold shadow-sm"
+                                                    >
+                                                        {isSubmitting ? (
+                                                            <Loader2 className="w-3 h-3 animate-spin mr-2" />
+                                                        ) : (
+                                                            <CheckCircle className="w-3 h-3 mr-2" />
+                                                        )}
+                                                        Add & Select Customer
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

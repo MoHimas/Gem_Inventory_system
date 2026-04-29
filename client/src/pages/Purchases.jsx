@@ -14,6 +14,15 @@ import {
   Gem,
   History,
   Loader2,
+  Check,
+  ChevronDown,
+  UserPlus,
+  X,
+  Building2,
+  Phone,
+  Mail,
+  MapPin,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,6 +82,18 @@ const Purchases = () => {
   });
   const [image, setImage] = useState(null); // Image file state
 
+  // Custom Supplier Selector State
+  const [supplierSearch, setSupplierSearch] = useState("");
+  const [isSupplierDropdownOpen, setIsSupplierDropdownOpen] = useState(false);
+  const [isAddingSupplier, setIsAddingSupplier] = useState(false);
+  const [newSupplierData, setNewSupplierData] = useState({
+    name: "",
+    phone: "",
+    contact_person: "",
+    email: "",
+    address: "",
+  });
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -123,10 +144,74 @@ const Purchases = () => {
       purchase_date: new Date().toISOString().split("T")[0],
     });
     setImage(null);
+    setSupplierSearch("");
+    setIsAddingSupplier(false);
+    setNewSupplierData({
+      name: "",
+      phone: "",
+      contact_person: "",
+      email: "",
+      address: "",
+    });
   };
+
+  const handleNewSupplierChange = (e) => {
+    setNewSupplierData({ ...newSupplierData, [e.target.name]: e.target.value });
+  };
+
+  const handleCreateSupplier = async (e) => {
+    e.preventDefault();
+    if (!newSupplierData.name || !newSupplierData.phone) {
+      toast.error("Company Name and Phone are required");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await axios.post("/api/suppliers", newSupplierData);
+      const createdSupplier = res.data;
+      
+      // Refresh suppliers list
+      const suppliersRes = await axios.get("/api/suppliers");
+      setSuppliers(suppliersRes.data);
+      
+      // Auto-select the new supplier
+      setFormData({ ...formData, supplier_id: createdSupplier.id });
+      setSupplierSearch("");
+      setIsAddingSupplier(false);
+      setIsSupplierDropdownOpen(false);
+      toast.success("Supplier created and selected!");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || "Failed to create supplier");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const filteredSuppliers = useMemo(() => {
+    if (!supplierSearch) return suppliers;
+    const query = supplierSearch.toLowerCase();
+    return suppliers.filter(
+      (s) =>
+        s.name.toLowerCase().includes(query) ||
+        (s.phone && s.phone.includes(query))
+    );
+  }, [suppliers, supplierSearch]);
+
+  const selectedSupplierLabel = useMemo(() => {
+    const s = suppliers.find((sup) => sup.id.toString() === formData.supplier_id.toString());
+    return s ? s.name : "Select a Supplier";
+  }, [suppliers, formData.supplier_id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.supplier_id) {
+      toast.error("Please select a supplier first");
+      return;
+    }
+
     setIsSubmitting(true);
 
     const data = new FormData();
@@ -336,21 +421,193 @@ const Purchases = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="supplier_id">Authorized Supplier</Label>
-                      <select
-                        id="supplier_id"
-                        name="supplier_id"
-                        className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-rose-500 transition-all"
-                        value={formData.supplier_id}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="">Select a Supplier</option>
-                        {suppliers.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.name}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!editingPurchase) {
+                              setIsSupplierDropdownOpen(!isSupplierDropdownOpen);
+                              setIsAddingSupplier(false);
+                            }
+                          }}
+                          className={cn(
+                            "flex h-11 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all",
+                            editingPurchase && "opacity-60 cursor-not-allowed"
+                          )}
+                          disabled={editingPurchase}
+                        >
+                          <span className="truncate">
+                            {selectedSupplierLabel}
+                          </span>
+                          <ChevronDown
+                            className={cn(
+                              "h-4 w-4 shrink-0 opacity-50 transition-transform duration-200",
+                              isSupplierDropdownOpen && "rotate-180"
+                            )}
+                          />
+                        </button>
+
+                        {isSupplierDropdownOpen && (
+                          <>
+                            <div 
+                              className="fixed inset-0 z-40" 
+                              onClick={() => setIsSupplierDropdownOpen(false)}
+                            />
+                            <div className="absolute top-full left-0 z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-xl animate-in fade-in zoom-in-95 duration-200 origin-top">
+                              <div className="p-2 border-b">
+                                <div className="relative">
+                                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  <Input
+                                    placeholder="Search supplier or phone..."
+                                    className="pl-8 h-9 text-xs focus-visible:ring-rose-500"
+                                    value={supplierSearch}
+                                    onChange={(e) => setSupplierSearch(e.target.value)}
+                                    autoFocus
+                                  />
+                                </div>
+                              </div>
+                              <div className="max-h-60 overflow-y-auto p-1">
+                                {filteredSuppliers.length === 0 ? (
+                                  <div className="py-6 text-center text-xs text-muted-foreground">
+                                    No suppliers found.
+                                  </div>
+                                ) : (
+                                  filteredSuppliers.map((s) => (
+                                    <button
+                                      key={s.id}
+                                      type="button"
+                                      className={cn(
+                                        "flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm hover:bg-rose-50 hover:text-rose-900 transition-colors",
+                                        formData.supplier_id.toString() === s.id.toString() && "bg-rose-50 text-rose-900"
+                                      )}
+                                      onClick={() => {
+                                        setFormData({ ...formData, supplier_id: s.id.toString() });
+                                        setIsSupplierDropdownOpen(false);
+                                        setSupplierSearch("");
+                                      }}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-[10px]">
+                                          {s.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div className="flex flex-col items-start">
+                                          <span className="font-medium">{s.name}</span>
+                                          <span className="text-[10px] text-muted-foreground">{s.phone}</span>
+                                        </div>
+                                      </div>
+                                      {formData.supplier_id.toString() === s.id.toString() && (
+                                        <Check className="h-4 w-4 text-rose-600" />
+                                      )}
+                                    </button>
+                                  ))
+                                )}
+                              </div>
+                              <div className="p-1 border-t bg-gray-50/50">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsAddingSupplier(true);
+                                    setIsSupplierDropdownOpen(false);
+                                  }}
+                                  className="flex w-full items-center gap-2 rounded-sm px-2 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-100 transition-colors"
+                                >
+                                  <Plus className="h-3.5 w-3.5" />
+                                  Create New Supplier
+                                </button>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Inline New Supplier Form */}
+                      {isAddingSupplier && (
+                        <div className="mt-4 p-4 rounded-xl border-2 border-dashed border-rose-200 bg-rose-50/30 animate-in slide-in-from-top-2 duration-300">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-xs font-bold text-rose-800 uppercase flex items-center gap-2">
+                              <UserPlus className="w-3.5 h-3.5" />
+                              Quick Supplier Add
+                            </h4>
+                            <button
+                              type="button"
+                              onClick={() => setIsAddingSupplier(false)}
+                              className="p-1 hover:bg-rose-100 rounded-full text-rose-400 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1.5">
+                                <Label className="text-[10px] uppercase text-rose-900/60 font-bold tracking-wider">Company Name *</Label>
+                                <Input 
+                                  name="name"
+                                  placeholder="Sapphire Mines" 
+                                  className="h-9 text-xs bg-white border-rose-100 focus:ring-rose-500"
+                                  value={newSupplierData.name}
+                                  onChange={handleNewSupplierChange}
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <Label className="text-[10px] uppercase text-rose-900/60 font-bold tracking-wider">Phone *</Label>
+                                <Input 
+                                  name="phone"
+                                  placeholder="+94..." 
+                                  className="h-9 text-xs bg-white border-rose-100 focus:ring-rose-500"
+                                  value={newSupplierData.phone}
+                                  onChange={handleNewSupplierChange}
+                                />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1.5">
+                                <Label className="text-[10px] uppercase text-rose-900/60 font-bold tracking-wider">Contact Person</Label>
+                                <Input 
+                                  name="contact_person"
+                                  placeholder="Manager Name" 
+                                  className="h-9 text-xs bg-white border-rose-100 focus:ring-rose-500"
+                                  value={newSupplierData.contact_person}
+                                  onChange={handleNewSupplierChange}
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <Label className="text-[10px] uppercase text-rose-900/60 font-bold tracking-wider">Email</Label>
+                                <Input 
+                                  name="email"
+                                  type="email"
+                                  placeholder="vendor@mail.com" 
+                                  className="h-9 text-xs bg-white border-rose-100 focus:ring-rose-500"
+                                  value={newSupplierData.email}
+                                  onChange={handleNewSupplierChange}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] uppercase text-rose-900/60 font-bold tracking-wider">Address</Label>
+                              <Input 
+                                name="address"
+                                placeholder="Mining location or office" 
+                                className="h-9 text-xs bg-white border-rose-100 focus:ring-rose-500"
+                                value={newSupplierData.address}
+                                onChange={handleNewSupplierChange}
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              onClick={handleCreateSupplier}
+                              disabled={isSubmitting || !newSupplierData.name || !newSupplierData.phone}
+                              className="w-full h-9 bg-rose-600 hover:bg-rose-700 text-xs font-bold shadow-sm"
+                            >
+                              {isSubmitting ? (
+                                <Loader2 className="w-3 h-3 animate-spin mr-2" />
+                              ) : (
+                                <CheckCircle className="w-3 h-3 mr-2" />
+                              )}
+                              Add & Select Supplier
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="name">Gemstone Name</Label>
